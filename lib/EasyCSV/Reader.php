@@ -30,6 +30,7 @@ class Reader extends AbstractBase
         }
 
         if (($row = $this->handle->fgetcsv($this->delimiter, $this->enclosure)) !== false && $row != null) {
+            $row[0] = $this->removeBOM($row[0]);
             $this->line++;
             return $this->headers ? array_combine($this->headers, $row) : $row;
         } else {
@@ -112,17 +113,32 @@ class Reader extends AbstractBase
                         $counts[$delimiter]++;
                     }
                     $line++;
-                    if($line > $testLines){
+                    if ($line > $testLines) {
                         break;
                     }
                 }
                 fclose($handle);
             }
         }
-        if (empty($counts)){
+        if (empty($counts)) {
             return false;
         }
         $character = current(array_keys($counts, max($counts)));
         return $character;
+    }
+
+    /**
+     * Remove bom characters
+     *
+     * @param string $str
+     * @return string
+     */
+    private function removeBOM($str = '')
+    {
+        if (substr($str, 0, 3) == pack('CCC', 0xef, 0xbb, 0xbf)) {
+            $str = substr($str, 3);
+        }
+
+        return $str;
     }
 }
